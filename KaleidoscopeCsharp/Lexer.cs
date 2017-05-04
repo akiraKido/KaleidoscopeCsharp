@@ -35,13 +35,13 @@ namespace KaleidoscopeCsharp
         }
 
         // TODO: substrを使ったらもうちょっと処理が早くなる
-        internal void NextToken()
+        internal int NextToken()
         {
             // ファイルの最後だったらEOFにして終了
             if (currentIndex >= input.Length)
             {
                 CurrentToken = (int)Token.EndOfFile;
-                return;
+                return CurrentToken;
             }
 
             // 空白文字をスキップ
@@ -76,7 +76,7 @@ namespace KaleidoscopeCsharp
                         break;
                 }
                 
-                return;
+                return CurrentToken;
             }
 
             // 数字かピリオド（小数点）で始まる場合
@@ -95,7 +95,7 @@ namespace KaleidoscopeCsharp
                 NumberValue = double.Parse(numString);
                 CurrentToken = (int)Token.Number;
                 
-                return;
+                return CurrentToken;
             }
 
             // # から始まる場合（コメント）
@@ -109,8 +109,7 @@ namespace KaleidoscopeCsharp
                 
                 // TODO: 再起関数は場合によってはスタックオーバーフローが発生するので
                 // TODO: 問題になったらループにする
-                NextToken();
-                return;
+                return NextToken();
             }
 
             // 文字、数字、コメント以外（＋など）そのままAsciiコードで返す
@@ -121,6 +120,7 @@ namespace KaleidoscopeCsharp
                 lastChar = input[currentIndex++];
             }
             CurrentToken = thisChar;
+            return CurrentToken;
         }
     }
 }
