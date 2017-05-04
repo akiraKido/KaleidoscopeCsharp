@@ -29,6 +29,9 @@ namespace KaleidoscopeCsharp
         internal double NumberValue { get; private set; }
         internal int CurrentToken { get; private set; }
 
+        internal int CurrentLine { get; private set; }
+        internal int CurrentIndex => currentIndex;
+
         internal Lexer(string input)
         {
             this.input = input;
@@ -48,7 +51,7 @@ namespace KaleidoscopeCsharp
             while (char.IsWhiteSpace(lastChar))
             {
                 lastChar = input[currentIndex++];
-
+                if (lastChar == '\n') CurrentLine++;
                 if (currentIndex >= input.Length) break;
             }
 
