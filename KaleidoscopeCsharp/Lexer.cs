@@ -41,6 +41,8 @@ namespace KaleidoscopeCsharp
                 while (char.IsWhiteSpace(lastChar))
                 {
                     lastChar = input[currentIndex++];
+
+                    if (currentIndex >= input.Length) break;
                 }
 
                 // 文字列から開始する場合
@@ -50,6 +52,8 @@ namespace KaleidoscopeCsharp
                     while (char.IsLetterOrDigit(lastChar = input[currentIndex++]))
                     {
                         IdentifierString += lastChar.ToString();
+
+                        if(currentIndex >= input.Length) break;
                     }
 
                     switch (IdentifierString)
@@ -76,6 +80,8 @@ namespace KaleidoscopeCsharp
                     {
                         numString += lastChar.ToString();
                         lastChar = input[currentIndex++];
+
+                        if (currentIndex >= input.Length) break;
                     } while (char.IsDigit(lastChar) || lastChar == '.');
 
                     // TODO: try-catchで囲いたい
@@ -99,6 +105,13 @@ namespace KaleidoscopeCsharp
 
                 // 文字、数字、コメント以外（＋など）そのままAsciiコードで返す
                 int thisChar = lastChar;
+
+                if (currentIndex >= input.Length)
+                {
+                    yield return thisChar;
+                    break;
+                }
+
                 lastChar = input[currentIndex++];
                 yield return thisChar;
             }
