@@ -107,6 +107,9 @@ namespace KaleidoscopeCsharp
                     lastChar = input[currentIndex++];
                 } while (currentIndex < input.Length && lastChar != '\n' && lastChar != '\r');
                 
+                // TODO: 再起関数は場合によってはスタックオーバーフローが発生するので
+                // TODO: 問題になったらループにする
+                NextToken();
                 return;
             }
 
