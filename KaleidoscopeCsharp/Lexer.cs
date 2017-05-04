@@ -23,100 +23,101 @@ namespace KaleidoscopeCsharp
     {
         private readonly string input;
         private int currentIndex;
+        private char lastChar = ' ';
 
         internal string IdentifierString { get; private set; }
         internal double NumberValue { get; private set; }
+        internal int CurrentToken { get; private set; }
 
         internal Lexer(string input)
         {
             this.input = input;
         }
 
-        internal IEnumerable<int> Tokens()
+        // TODO: substrを使ったらもうちょっと処理が早くなる
+        internal void NextToken()
         {
-            char lastChar = ' ';
-
-            while (currentIndex < input.Length)
+            // ファイルの最後だったらEOFにして終了
+            if (currentIndex >= input.Length)
             {
-                while (char.IsWhiteSpace(lastChar))
+                CurrentToken = (int)Token.EndOfFile;
+                return;
+            }
+
+            // 空白文字をスキップ
+            while (char.IsWhiteSpace(lastChar))
+            {
+                lastChar = input[currentIndex++];
+
+                if (currentIndex >= input.Length) break;
+            }
+
+            // 文字列から開始する場合
+            if (char.IsLetter(lastChar))
+            {
+                IdentifierString = lastChar.ToString();
+                while (char.IsLetterOrDigit(lastChar = input[currentIndex++]))
                 {
-                    lastChar = input[currentIndex++];
+                    IdentifierString += lastChar.ToString();
 
                     if (currentIndex >= input.Length) break;
                 }
 
-                // 文字列から開始する場合
-                if (char.IsLetter(lastChar))
+                switch (IdentifierString)
                 {
-                    IdentifierString = lastChar.ToString();
-                    while (char.IsLetterOrDigit(lastChar = input[currentIndex++]))
-                    {
-                        IdentifierString += lastChar.ToString();
-
-                        if(currentIndex >= input.Length) break;
-                    }
-
-                    switch (IdentifierString)
-                    {
-                        case "def":
-                            yield return (int) Token.Def;
-                            break;
-                        case "extern":
-                            yield return (int) Token.Extern;
-                            break;
-                        default:
-                            yield return (int) Token.Identifier;
-                            break;
-                    }
-
-                    continue;
+                    case "def":
+                        CurrentToken = (int)Token.Def;
+                        break;
+                    case "extern":
+                        CurrentToken = (int)Token.Extern;
+                        break;
+                    default:
+                        CurrentToken = (int)Token.Identifier;
+                        break;
                 }
-
-                // 数字かピリオド（小数点）で始まる場合
-                if (char.IsDigit(lastChar) || lastChar == '.')
-                {
-                    string numString = string.Empty;
-                    do
-                    {
-                        numString += lastChar.ToString();
-                        lastChar = input[currentIndex++];
-
-                        if (currentIndex >= input.Length) break;
-                    } while (char.IsDigit(lastChar) || lastChar == '.');
-
-                    // TODO: try-catchで囲いたい
-                    NumberValue = double.Parse(numString);
-                    yield return (int) Token.Number;
-
-                    continue;
-                }
-
-                // # から始まる場合（コメント）
-                if (lastChar == '#')
-                {
-                    // EOFか改行までスキップ
-                    do
-                    {
-                        lastChar = input[currentIndex++];
-                    } while (currentIndex < input.Length && lastChar != '\n' && lastChar != '\r');
-
-                    continue;
-                }
-
-                // 文字、数字、コメント以外（＋など）そのままAsciiコードで返す
-                int thisChar = lastChar;
-
-                if (currentIndex >= input.Length)
-                {
-                    yield return thisChar;
-                    break;
-                }
-
-                lastChar = input[currentIndex++];
-                yield return thisChar;
+                
+                return;
             }
 
-            yield return (int) Token.EndOfFile;
+            // 数字かピリオド（小数点）で始まる場合
+            if (char.IsDigit(lastChar) || lastChar == '.')
+            {
+                string numString = string.Empty;
+                do
+                {
+                    numString += lastChar.ToString();
+                    lastChar = input[currentIndex++];
+
+                    if (currentIndex >= input.Length) break;
+                } while (char.IsDigit(lastChar) || lastChar == '.');
+
+                // TODO: try-catchで囲いたい
+                NumberValue = double.Parse(numString);
+                CurrentToken = (int)Token.Number;
+                
+                return;
+            }
+
+            // # から始まる場合（コメント）
+            if (lastChar == '#')
+            {
+                // EOFか改行までスキップ
+                do
+                {
+                    lastChar = input[currentIndex++];
+                } while (currentIndex < input.Length && lastChar != '\n' && lastChar != '\r');
+                
+                return;
+            }
+
+            // 文字、数字、コメント以外（＋など）そのままAsciiコードで返す
+            int thisChar = lastChar;
+            if (currentIndex < input.Length)
+            {
+                // 進められるなら一個進める
+                lastChar = input[currentIndex++];
+            }
+            CurrentToken = thisChar;
         }
     }
 }
